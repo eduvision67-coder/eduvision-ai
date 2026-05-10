@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduVision AI</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Outfit', sans-serif; }
+    html, body { height: 100%; margin: 0; box-sizing: border-box; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15,10,40,0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.5); border-radius: 3px; }
+
+    .glass { background: rgba(20,15,50,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(139,92,246,0.2); }
+    .glass-strong { background: rgba(30,20,70,0.8); backdrop-filter: blur(30px); border: 1px solid rgba(139,92,246,0.3); }
+    .neon-glow { box-shadow: 0 0 20px rgba(139,92,246,0.3), 0 0 60px rgba(59,130,246,0.1); }
+    .neon-text { text-shadow: 0 0 20px rgba(139,92,246,0.5); }
+    .neon-border { border: 1px solid rgba(139,92,246,0.5); box-shadow: inset 0 0 20px rgba(139,92,246,0.1); }
+
+    .btn-primary { background: linear-gradient(135deg, #8b5cf6, #3b82f6); transition: all 0.3s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.4); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .fade-in { animation: fadeIn 0.4s ease forwards; opacity: 0; }
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+
+    .nav-item { transition: all 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(139,92,246,0.2); color: #a78bfa; }
+
+    .stat-card { transition: all 0.3s; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(139,92,246,0.3); }
+
+    .progress-ring { transition: stroke-dashoffset 0.5s ease; }
+    .chat-bubble { animation: fadeIn 0.3s ease; }
+
+    .quiz-option { transition: all 0.2s; cursor: pointer; }
+    .quiz-option:hover { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.1); }
+    .quiz-option.correct { border-color: #10b981; background: rgba(16,185,129,0.15); }
+    .quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.15); }
+
+    .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; margin: 0 2px; animation: pulse-dot 1.2s ease infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .error-msg { color: #f87171; font-size: 0.85rem; }
+    .achievement-locked { filter: grayscale(0.6); opacity: 0.5; }
+  </style>
+</head>
+<body class="h-full bg-[#0a0618] text-white overflow-hidden">
+  <div id="app" class="h-full flex">
+
+    <!-- Sidebar -->
+    <nav class="w-64 glass-strong flex flex-col p-4 gap-1 shrink-0">
+      <div class="flex items-center gap-3 px-3 py-4 mb-4 justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center neon-glow">
+            <i data-lucide="brain" class="w-5 h-5"></i>
+          </div>
+          <span id="nav-title" class="font-bold text-lg neon-text">EduVision AI</span>
+        </div>
+        <button onclick="toggleLanguage()" class="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-violet-500/20 transition text-sm font-semibold" id="lang-btn">EN</button>
+      </div>
+      <button onclick="showSection('home')" class="nav-item active rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="home"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span></button>
+      <button onclick="showSection('quiz')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="quiz"><i data-lucide="brain" class="w-5 h-5"></i><span>Brain Test</span></button>
+      <button onclick="showSection('tutor')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="tutor"><i data-lucide="message-circle" class="w-5 h-5"></i><span>AI Tutor</span></button>
+      <button onclick="showSection('notes')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="notes"><i data-lucide="brain" class="w-5 h-5"></i><span>Smart Notes</span></button>
+      <button onclick="showSection('planner')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="planner"><i data-lucide="calendar" class="w-5 h-5"></i><span>Study Planner</span></button>
+      <button onclick="showSection('timer')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="timer"><i data-lucide="timer" class="w-5 h-5"></i><span>Focus Timer</span></button>
+      <button onclick="showSection('progress')" class="nav-item rounded-xl px-4 py-3 flex items-center gap-3 text-left" data-nav="progress"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span>Progress</span></button>
+
+      <div class="mt-auto pt-4 border-t border-violet-500/20">
+        <div class="flex items-center gap-2 px-3 py-2">
+          <div id="server-dot" class="w-2 h-2 rounded-full bg-gray-500"></div>
+          <span id="server-status" class="text-xs text-gray-500">Checking server...</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6">
+
+      <!-- Home -->
+      <section id="sec-home" class="fade-in">
+        <div class="glass rounded-2xl p-8 neon-glow mb-6">
+          <h1 id="welcome-text" class="text-3xl font-bold neon-text mb-2">Welcome back, Student</h1>
+          <p id="welcome-subtext" class="text-gray-400 mb-6">Your AI-powered learning journey continues. What will you master today?</p>
+          <button id="start-btn" onclick="showSection('tutor')" class="btn-primary px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+            <span>Start Learning</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="stat-card glass rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center"><i data-lucide="clock" class="w-5 h-5 text-violet-400"></i></div>
+              <span class="text-gray-400 text-sm">Study Time</span>
+            </div>
+            <p id="stat-study-time" class="text-2xl font-bold">0m</p>
+            <p id="stat-study-sub" class="text-xs text-gray-400 mt-1">from Focus Timer</p>
+          </div>
+          <div class="stat-card glass rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><i data-lucide="target" class="w-5 h-5 text-blue-400"></i></div>
+              <span class="text-gray-400 text-sm">Quiz Score</span>
+            </div>
+            <p id="stat-quiz-score" class="text-2xl font-bold">—</p>
+            <p id="stat-quiz-sub" class="text-xs text-gray-400 mt-1">no quizzes yet</p>
+          </div>
+          <div class="stat-card glass rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center"><i data-lucide="flame" class="w-5 h-5 text-pink-400"></i></div>
+              <span class="text-gray-400 text-sm">Streak</span>
+            </div>
+            <p id="stat-streak" class="text-2xl font-bold">0 days</p>
+            <p id="stat-streak-sub" class="text-xs text-gray-400 mt-1">start studying today!</p>
+          </div>
+          <div class="stat-card glass rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center"><i data-lucide="book-open" class="w-5 h-5 text-emerald-400"></i></div>
+              <span class="text-gray-400 text-sm">Topics</span>
+            </div>
+            <p id="stat-topics" class="text-2xl font-bold">0</p>
+            <p id="stat-topics-sub" class="text-xs text-gray-400 mt-1">analyzed in Smart Notes</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Brain Test (Quiz) -->
+      <section id="sec-quiz" class="fade-in hidden">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h2 id="quiz-section-title" class="text-2xl font-bold neon-text">🧠 Brain Test</h2>
+          <div class="flex flex-wrap gap-3 items-center">
+            <select id="quiz-subject-select" class="glass rounded-xl px-4 py-2 text-sm border border-violet-500/30 focus:outline-none focus:border-violet-400">
+              <option value="">Select Subject</option>
+            </select>
+            <div class="flex gap-2">
+              <button onclick="setDifficulty('easy')" class="diff-btn px-4 py-2 rounded-lg text-sm glass hover:bg-green-500/20 transition" data-diff="easy" id="diff-easy">Easy</button>
+              <button onclick="setDifficulty('medium')" class="diff-btn px-4 py-2 rounded-lg text-sm glass bg-yellow-500/20" data-diff="medium" id="diff-medium">Medium</button>
+              <button onclick="setDifficulty('hard')" class="diff-btn px-4 py-2 rounded-lg text-sm glass hover:bg-red-500/20 transition" data-diff="hard" id="diff-hard">Hard</button>
+            </div>
+          </div>
+        </div>
+        <div id="quiz-container" class="glass rounded-2xl p-8 neon-border">
+          <div class="flex items-center justify-between mb-6">
+            <span id="quiz-progress" class="text-sm text-gray-400">Question 1 of 5</span>
+            <span id="quiz-score" class="text-sm text-violet-300">Score: 0/0</span>
+          </div>
+          <h3 id="quiz-question" class="text-xl font-semibold mb-6"></h3>
+          <div id="quiz-options" class="space-y-3"></div>
+          <button id="quiz-next" onclick="nextQuestion()" class="btn-primary px-6 py-3 rounded-xl font-medium mt-6 hidden">Next Question →</button>
+        </div>
+      </section>
+
+      <!-- AI Tutor -->
+      <section id="sec-tutor" class="fade-in hidden h-full flex flex-col">
+        <div class="glass rounded-2xl flex-1 flex flex-col overflow-hidden" style="height: calc(100vh - 3rem);">
+          <div class="p-4 border-b border-violet-500/20 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center"><i data-lucide="bot" class="w-4 h-4"></i></div>
+            <span class="font-semibold">AI Tutor</span>
+            <span class="text-xs text-green-400 ml-2">● Online</span>
+          </div>
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div class="chat-bubble flex gap-3">
+              <div class="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center shrink-0"><i data-lucide="bot" class="w-4 h-4 text-violet-300"></i></div>
+              <div class="glass rounded-2xl rounded-tl-sm px-4 py-3 max-w-lg">
+                <p class="text-sm" id="tutor-intro">Hello! I'm your AI tutor. Ask me anything about your studies — I'll explain it simply and clearly. 🧠</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 border-t border-violet-500/20">
+            <div class="flex gap-3">
+              <input id="chat-input" type="text" placeholder="Ask me anything..."
+                class="flex-1 bg-white/5 border border-violet-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
+                autocomplete="off"
+                onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendChat(); }">
+              <button id="send-btn" onclick="sendChat()" class="btn-primary px-5 py-3 rounded-xl">
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Smart Study Notes -->
+      <section id="sec-notes" class="fade-in hidden">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center neon-glow">
+            <i data-lucide="brain" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 id="notes-title" class="text-2xl font-bold neon-text">Smart Study Notes</h2>
+            <p id="notes-subtitle" class="text-xs text-gray-400">Paste any text and AI will analyze everything</p>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6 mb-4">
+          <textarea id="notes-textarea"
+            placeholder="Paste your text here..."
+            class="w-full h-48 bg-white/5 border border-violet-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400 resize-none leading-relaxed"
+            oninput="updateCharCount()"></textarea>
+          <div class="flex justify-between mt-2">
+            <span id="char-count" class="text-xs text-gray-500">0 chars</span>
+            <button onclick="clearNotesText()" id="notes-clear-btn" class="text-xs text-gray-500 hover:text-red-400 transition">Clear ✕</button>
+          </div>
+        </div>
+        <button id="analyze-btn" onclick="analyzeNotes()"
+          class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 mb-6">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <span id="analyze-btn-label">Analyze &amp; Generate Notes</span>
+        </button>
+        <div id="notes-output" class="hidden space-y-4">
+          <div class="glass rounded-2xl p-6 border-l-4 border-violet-500">
+            <div class="flex items-center gap-2 mb-3"><span class="text-lg">✂️</span><h3 id="notes-summary-title" class="font-semibold text-violet-300">Quick Summary</h3></div>
+            <p id="notes-summary" class="text-sm text-gray-300 leading-relaxed"></p>
+          </div>
+          <div class="glass rounded-2xl p-6 border-l-4 border-blue-500">
+            <div class="flex items-center gap-2 mb-3"><span class="text-lg">🎯</span><h3 id="notes-points-title" class="font-semibold text-blue-300">Key Points</h3></div>
+            <ul id="notes-points" class="space-y-2"></ul>
+          </div>
+          <div class="glass rounded-2xl p-6 border-l-4 border-emerald-500">
+            <div class="flex items-center gap-2 mb-3"><span class="text-lg">🧩</span><h3 id="notes-mindmap-title" class="font-semibold text-emerald-300">Mind Map</h3></div>
+            <div id="notes-mindmap" class="text-sm space-y-1"></div>
+          </div>
+          <div class="glass rounded-2xl p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center gap-2 mb-3"><span class="text-lg">❓</span><h3 id="notes-questions-title" class="font-semibold text-yellow-300">Review Questions</h3></div>
+            <div id="notes-questions" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Planner -->
+      <section id="sec-planner" class="fade-in hidden">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold neon-text">Study Planner</h2>
+          <button onclick="openAddSession()" class="btn-primary px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2" id="add-session-btn">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span id="add-session-btn-label">Add Session</span>
+          </button>
+        </div>
+
+        <!-- Calendar -->
+        <div class="glass rounded-2xl p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <button onclick="changeMonth(-1)" class="glass p-2 rounded-lg hover:bg-violet-500/20 transition"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            <span id="planner-month-label" class="font-semibold text-sm"></span>
+            <button onclick="changeMonth(1)" class="glass p-2 rounded-lg hover:bg-violet-500/20 transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          </div>
+          <div class="grid grid-cols-7 gap-1 mb-1" id="planner-day-headers">
+            <!-- filled by JS -->
+          </div>
+          <div id="planner-grid" class="grid grid-cols-7 gap-1"></div>
+        </div>
+
+        <!-- Selected Day Sessions -->
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold" id="planner-day-title">Today's Sessions</h3>
+            <span id="planner-session-count" class="text-xs text-gray-400"></span>
+          </div>
+          <div id="planner-sessions" class="space-y-2"></div>
+        </div>
+
+        <!-- Add Session Modal -->
+        <div id="add-session-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="glass-strong rounded-2xl p-6 w-full max-w-sm">
+            <h3 class="font-bold text-lg mb-5" id="modal-title">➕ New Study Session</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block" id="label-subject">Subject</label>
+                <input id="session-subject" type="text" placeholder="e.g. Math, Physics..."
+                  class="w-full bg-white/5 border border-violet-500/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs text-gray-400 mb-1 block" id="label-time">Start Time</label>
+                  <input id="session-time" type="time" value="09:00"
+                    class="w-full bg-white/5 border border-violet-500/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400">
+                </div>
+                <div>
+                  <label class="text-xs text-gray-400 mb-1 block" id="label-duration">Duration (mins)</label>
+                  <input id="session-duration" type="number" value="60" min="15" max="480" step="15"
+                    class="w-full bg-white/5 border border-violet-500/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400">
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block" id="label-date">Date</label>
+                <input id="session-date" type="date"
+                  class="w-full bg-white/5 border border-violet-500/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 mb-2 block" id="label-color">Color</label>
+                <div class="flex gap-2" id="color-picker">
+                  <div onclick="selectColor('violet', event)" class="color-opt w-7 h-7 rounded-full bg-violet-500 cursor-pointer ring-2 ring-white ring-offset-1 ring-offset-transparent"></div>
+                  <div onclick="selectColor('blue', event)" class="color-opt w-7 h-7 rounded-full bg-blue-500 cursor-pointer"></div>
+                  <div onclick="selectColor('pink', event)" class="color-opt w-7 h-7 rounded-full bg-pink-500 cursor-pointer"></div>
+                  <div onclick="selectColor('emerald', event)" class="color-opt w-7 h-7 rounded-full bg-emerald-500 cursor-pointer"></div>
+                  <div onclick="selectColor('yellow', event)" class="color-opt w-7 h-7 rounded-full bg-yellow-500 cursor-pointer"></div>
+                </div>
+              </div>
+            </div>
+            <p id="session-error" class="text-xs text-red-400 mt-3 hidden"></p>
+            <div class="flex gap-3 mt-5">
+              <button onclick="closeAddSession()" class="flex-1 glass py-2.5 rounded-xl text-sm hover:bg-white/10 transition" id="modal-cancel">Cancel</button>
+              <button onclick="saveSession()" class="flex-1 btn-primary py-2.5 rounded-xl text-sm font-medium" id="modal-save">Save</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Focus Timer -->
+      <section id="sec-timer" class="fade-in hidden">
+        <h2 class="text-2xl font-bold mb-6 neon-text">Focus Timer</h2>
+        <div class="glass rounded-2xl p-8 neon-glow text-center max-w-md mx-auto">
+          <div class="relative w-48 h-48 mx-auto mb-8">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#3b82f6"/>
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(139,92,246,0.1)" stroke-width="6"/>
+              <circle id="timer-ring" cx="50" cy="50" r="45" fill="none" stroke="url(#timerGradient)" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" class="progress-ring"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="timer-display" class="text-4xl font-bold neon-text">25:00</span>
+              <span id="timer-label" class="text-sm text-gray-400 mt-1">Focus</span>
+            </div>
+          </div>
+          <div class="flex justify-center gap-3 mb-6">
+            <button onclick="startTimer()" id="timer-start" class="btn-primary px-6 py-3 rounded-xl font-medium flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Start</button>
+            <button onclick="pauseTimer()" id="timer-pause" class="glass px-6 py-3 rounded-xl font-medium hover:bg-violet-500/20 transition hidden flex items-center gap-2"><i data-lucide="pause" class="w-4 h-4"></i> Pause</button>
+            <button onclick="resetTimer()" class="glass px-6 py-3 rounded-xl font-medium hover:bg-violet-500/20 transition flex items-center gap-2"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset</button>
+          </div>
+          <div class="flex justify-center gap-2 flex-wrap">
+            <button onclick="setTimerMode('focus')" class="timer-mode px-4 py-2 rounded-lg text-xs bg-violet-500/20 border border-violet-500/30" data-mode="focus">Focus 25m</button>
+            <button onclick="setTimerMode('short')" class="timer-mode px-4 py-2 rounded-lg text-xs glass" data-mode="short">Break 5m</button>
+            <button onclick="setTimerMode('long')" class="timer-mode px-4 py-2 rounded-lg text-xs glass" data-mode="long">Long 15m</button>
+            <button onclick="setTimerMode('hour')" class="timer-mode px-4 py-2 rounded-lg text-xs glass" data-mode="hour">1 Hour</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress Dashboard - REAL with Dynamic Subjects -->
+      <section id="sec-progress" class="fade-in hidden">
+        <h2 class="text-2xl font-bold mb-6 neon-text">Progress Dashboard</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Weekly Study Time (REAL) -->
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4">Weekly Study Time</h3>
+            <div id="weekly-chart" class="flex items-end gap-3 h-40">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+          <!-- Performance by Subject (REAL based on Planner Subjects) -->
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4">Performance by Subject</h3>
+            <div id="subject-performance" class="space-y-4">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+          <!-- Achievements (REAL) -->
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4">Achievements</h3>
+            <div id="achievements-grid" class="grid grid-cols-4 gap-3">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+          <!-- Study Streak (REAL) -->
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4">Study Streak</h3>
+            <div class="flex items-center gap-4">
+              <div id="current-streak-num" class="text-5xl font-bold neon-text">0</div>
+              <div><p class="text-gray-400">days in a row</p><p id="best-streak-text" class="text-sm text-violet-300">Personal best: 0 days</p></div>
+            </div>
+            <div id="week-strip" class="flex gap-1 mt-4">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // =====================
+    // API URL
+    // =====================
+    const API_URL = "http://localhost:5000";
+
+    // =====================
+    // Server Status
+    // =====================
+    async function checkServerStatus() {
+      try {
+        const res = await fetch(`${API_URL}/`, { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          document.getElementById('server-dot').className = 'w-2 h-2 rounded-full bg-green-400';
+          document.getElementById('server-status').textContent = currentLang === 'ar' ? 'السيرفر متصل' : 'Server connected';
+          document.getElementById('server-status').className = 'text-xs text-green-400';
+        }
+      } catch {
+        document.getElementById('server-dot').className = 'w-2 h-2 rounded-full bg-red-400';
+        document.getElementById('server-status').textContent = currentLang === 'ar' ? 'السيرفر غير متصل' : 'Server offline';
+        document.getElementById('server-status').className = 'text-xs text-red-400';
+      }
+    }
+
+    // =====================
+    // Language System
+    // =====================
+    let currentLang = 'en';
+
+    const translations = {
+      en: {
+        dashboard: 'Dashboard', tutor: 'AI Tutor', notes: 'Smart Notes', quiz: 'Brain Test', planner: 'Study Planner', timer: 'Focus Timer', progress: 'Progress',
+        welcome: 'Welcome back, Student', subtext: 'Your AI-powered learning journey continues. What will you master today?', startBtn: 'Start Learning',
+        tutor_intro: "Hello! I'm your AI tutor. Ask me anything about your studies — I'll explain it simply and clearly. 🧠", ask_input: 'Ask me anything...',
+        quiz_section_title: '🧠 Brain Test', quiz_progress: 'Question', quiz_score: 'Score:', quiz_next_btn: 'Next Question →',
+        diff_easy: 'Easy', diff_medium: 'Medium', diff_hard: 'Hard', select_subject: 'Select Subject', select_subject_warning: '⚠️ Please select a subject first',
+        quiz_q_easy: ["What is the powerhouse of the cell?", "What planet is closest to the Sun?", "What is H₂O?", "How many continents are there?", "What gas do plants absorb?"],
+        quiz_opts_easy: [["Nucleus","Mitochondria","Ribosome","Golgi Body"], ["Venus","Earth","Mercury","Mars"], ["Oxygen","Hydrogen","Water","Carbon dioxide"], ["5","6","7","8"], ["Oxygen","Nitrogen","CO₂","Helium"]],
+        quiz_ans_easy: [1,2,2,2,2],
+        quiz_q_medium: ["What is the derivative of x²?", "Newton's second law relates force to?", "Which element has atomic number 6?", "What is the speed of light (approx)?", "DNA stands for?"],
+        quiz_opts_medium: [["x","2x","2x²","x³"], ["Velocity","Mass × Acceleration","Energy","Momentum"], ["Nitrogen","Carbon","Oxygen","Boron"], ["300,000 m/s","300,000 km/s","30,000 km/s","3,000,000 km/s"], ["Deoxyribonucleic Acid","Dinitrogen Acid","Double Nuclear Acid","Deoxynitrous Acid"]],
+        quiz_ans_medium: [1,1,1,1,0],
+        quiz_q_hard: ["What is the integral of 1/x?", "Heisenberg's principle concerns?", "Schrödinger's equation describes?", "What is Euler's number (e) approximately?", "The Krebs cycle occurs in?"],
+        quiz_opts_hard: [["x²","ln|x| + C","1/x² + C","e^x + C"], ["Energy conservation","Uncertainty in position & momentum","Wave-particle duality","Quantum entanglement"], ["Classical mechanics","Quantum state evolution","Thermodynamics","Relativity"], ["2.718","3.141","1.618","2.236"], ["Cytoplasm","Nucleus","Mitochondrial matrix","ER"]],
+        quiz_ans_hard: [1,1,1,0,2],
+        notes_lang_instruction: 'Respond ONLY in English.',
+        focus: 'Focus', short_break: 'Short Break', long_break: 'Long Break', hour_mode: '1 Hour',
+        add_session_btn: 'Add Session', modal_title: '➕ New Study Session', label_subject: 'Subject', subject_placeholder: 'e.g. Math, Physics...',
+        label_time: 'Start Time', label_duration: 'Duration (mins)', label_date: 'Date', label_color: 'Color',
+        modal_cancel: 'Cancel', modal_save: 'Save',
+        err_subject: '⚠️ Please enter a subject name', err_date: '⚠️ Please choose a date', err_duration: '⚠️ Duration must be at least 15 minutes',
+        day_title_today: "Today's Sessions", no_sessions: 'No sessions on this day', no_sessions_hint: 'Click "Add Session" to add one',
+        session_count: (n) => `${n} session${n !== 1 ? 's' : ''}`,
+        days: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        notes_title: 'Smart Study Notes', notes_subtitle: 'Paste any text and AI will analyze everything',
+        notes_placeholder: 'Paste your text here...', notes_char_count: (n) => `${n.toLocaleString()} chars`,
+        notes_clear: 'Clear ✕', notes_analyze_btn: 'Analyze & Generate Notes', notes_analyzing: 'Analyzing...',
+        notes_summary_title: 'Quick Summary', notes_points_title: 'Key Points', notes_mindmap_title: 'Mind Map',
+        notes_questions_title: 'Review Questions', notes_no_data: 'No data available', notes_show_answer: 'Show Answer',
+        notes_q_prefix: (i) => `Q${i+1}:`, notes_timeout_err: 'Request timed out. Please try again.', notes_fail_err: 'Analysis failed',
+        achievement_top_score: "Top Score", achievement_7day: "7-Day Streak", achievement_bookworm: "Bookworm", achievement_perfect: "Perfectionist"
+      },
+      ar: {
+        dashboard: 'لوحة التحكم', tutor: 'معلم ذكي', notes: 'ملاحظات ذكية', quiz: 'اختبار الدماغ', planner: 'مخطط الدراسة', timer: 'مؤقت التركيز', progress: 'التقدم',
+        welcome: 'أهلا بعودتك، الطالب', subtext: 'رحلتك التعليمية المدعومة بالذكاء الاصطناعي تستمر. ماذا ستتقن اليوم؟', startBtn: 'ابدأ التعلم',
+        tutor_intro: 'مرحباً! أنا معلمك الذكي. اسأل عن أي شيء في دراستك — سأشرح لك ببساطة ووضوح. 🧠', ask_input: 'اسأل عن أي شيء...',
+        quiz_section_title: '🧠 اختبار الدماغ', quiz_progress: 'السؤال', quiz_score: 'النتيجة:', quiz_next_btn: 'السؤال التالي ←',
+        diff_easy: 'سهل', diff_medium: 'متوسط', diff_hard: 'صعب', select_subject: 'اختر المادة', select_subject_warning: '⚠️ الرجاء اختيار المادة أولاً',
+        quiz_q_easy: ["ما هي محطة الطاقة في الخلية؟", "ما هو أقرب كوكب إلى الشمس؟", "ما هو H₂O؟", "كم عدد القارات؟", "أي غاز تمتصه النباتات؟"],
+        quiz_opts_easy: [["النواة","الميتوكوندريا","الرايبوسوم","جهاز جولجي"], ["الزهرة","الأرض","عطارد","المريخ"], ["أكسجين","هيدروجين","ماء","ثاني أكسيد الكربون"], ["5","6","7","8"], ["أكسجين","نيتروجين","CO₂","هيليوم"]],
+        quiz_ans_easy: [1,2,2,2,2],
+        quiz_q_medium: ["ما هو مشتق x²؟", "قانون نيوتن الثاني يربط القوة بـ؟", "أي عنصر رقمه الذري 6؟", "ما هي سرعة الضوء تقريباً؟", "ماذا تعني DNA؟"],
+        quiz_opts_medium: [["x","2x","2x²","x³"], ["السرعة","الكتلة × التسارع","الطاقة","الزخم"], ["نيتروجين","كربون","أكسجين","بورون"], ["300,000 م/ث","300,000 كم/ث","30,000 كم/ث","3,000,000 كم/ث"], ["حمض الديوكسي ريبونوكلئيك","حمض ثنائي النيتروجين","حمض نووي مزدوج","حمض ديوكسينيتروز"]],
+        quiz_ans_medium: [1,1,1,1,0],
+        quiz_q_hard: ["ما هو تكامل 1/x؟", "مبدأ هايزنبرغ يتعلق بـ؟", "معادلة شرودنجر تصف؟", "ما هو رقم أويلر e تقريباً؟", "أين تحدث دورة كريبس؟"],
+        quiz_opts_hard: [["x²","ln|x| + C","1/x² + C","e^x + C"], ["حفظ الطاقة","عدم اليقين في الموضع والزخم","ازدواجية الموجة والجسيم","التشابك الكمي"], ["الميكانيكا الكلاسيكية","تطور الحالة الكمية","الديناميكا الحرارية","النسبية"], ["2.718","3.141","1.618","2.236"], ["السيتوبلازم","النواة","مصفوفة الميتوكوندريا","الشبكة الإندوبلازمية"]],
+        quiz_ans_hard: [1,1,1,0,2],
+        notes_lang_instruction: 'أجب باللغة العربية فقط.',
+        focus: 'تركيز', short_break: 'استراحة قصيرة', long_break: 'استراحة طويلة', hour_mode: 'ساعة كاملة',
+        add_session_btn: 'إضافة جلسة', modal_title: '➕ جلسة دراسة جديدة', label_subject: 'الموضوع', subject_placeholder: 'مثال: رياضيات، فيزياء...',
+        label_time: 'وقت البدء', label_duration: 'المدة (دقائق)', label_date: 'التاريخ', label_color: 'اللون',
+        modal_cancel: 'إلغاء', modal_save: 'حفظ',
+        err_subject: '⚠️ اكتب اسم الموضوع', err_date: '⚠️ اختر التاريخ', err_duration: '⚠️ المدة لازم تكون 15 دقيقة على الأقل',
+        day_title_today: 'جلسات اليوم', no_sessions: 'لا توجد جلسات في هذا اليوم', no_sessions_hint: 'اضغط "إضافة جلسة" لإضافة واحدة',
+        session_count: (n) => `${n} جلسة`,
+        days: ['الإث','الثلا','الأرب','الخمي','الجمع','السبت','الأحد'],
+        notes_title: 'ملاحظات الدراسة الذكية', notes_subtitle: 'الصق أي نص والـ AI يحلل كل حاجة',
+        notes_placeholder: 'الصق النص هنا...', notes_char_count: (n) => `${n.toLocaleString()} حرف`,
+        notes_clear: 'مسح ✕', notes_analyze_btn: 'تحليل وإنشاء الملاحظات', notes_analyzing: 'جاري التحليل...',
+        notes_summary_title: 'تلخيص سريع', notes_points_title: 'النقاط المهمة', notes_mindmap_title: 'خريطة الأفكار',
+        notes_questions_title: 'أسئلة المراجعة', notes_no_data: 'لا توجد بيانات', notes_show_answer: 'اظهر الإجابة',
+        notes_q_prefix: (i) => `س${i+1}:`, notes_timeout_err: 'انتهت المهلة. حاول مرة ثانية.', notes_fail_err: 'فشل التحليل',
+        achievement_top_score: "أعلى نتيجة", achievement_7day: "7 أيام متتالية", achievement_bookworm: "محب للقراءة", achievement_perfect: "مثالي"
+      }
+    };
+
+    function t(key, ...args) { const val = translations[currentLang][key] ?? translations.en[key]; return typeof val === 'function' ? val(...args) : val; }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'ar' : 'en';
+      document.getElementById('lang-btn').textContent = currentLang === 'en' ? 'EN' : 'AR';
+      document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+      applyAllTranslations();
+      refreshSubjectSelect();
+      loadQuestion();
+    }
+
+    function applyAllTranslations() {
+      document.getElementById('welcome-text').textContent = t('welcome');
+      document.getElementById('welcome-subtext').textContent = t('subtext');
+      document.querySelector('#start-btn span').textContent = t('startBtn');
+      const navMap = { home: ['layout-dashboard', t('dashboard')], quiz: ['brain', t('quiz')], tutor: ['message-circle', t('tutor')], notes: ['brain', t('notes')], planner: ['calendar', t('planner')], timer: ['timer', t('timer')], progress: ['bar-chart-2', t('progress')] };
+      Object.entries(navMap).forEach(([key, [icon, label]]) => { const btn = document.querySelector(`[data-nav="${key}"]`); if (btn) btn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i><span>${label}</span>`; });
+      document.getElementById('tutor-intro').textContent = t('tutor_intro'); document.getElementById('chat-input').placeholder = t('ask_input');
+      document.getElementById('add-session-btn-label').textContent = t('add_session_btn'); updateModalTranslations(); updateNotesTranslations();
+      document.getElementById('quiz-section-title').textContent = t('quiz_section_title'); document.getElementById('diff-easy').textContent = t('diff_easy');
+      document.getElementById('diff-medium').textContent = t('diff_medium'); document.getElementById('diff-hard').textContent = t('diff_hard');
+      document.getElementById('quiz-next').textContent = t('quiz_next_btn');
+      if (typeof score !== 'undefined') document.getElementById('quiz-score').textContent = `${t('quiz_score')} ${score}/${answered}`;
+      document.getElementById('quiz-progress').textContent = `${t('quiz_progress')} ${currentQ+1} of 5`;
+      const modeNames = document.querySelectorAll('.timer-mode'); if (modeNames.length >= 4) { modeNames[0].textContent = t('focus') + ' 25m'; modeNames[1].textContent = t('short_break') + ' 5m'; modeNames[2].textContent = t('long_break') + ' 15m'; modeNames[3].textContent = t('hour_mode'); }
+      buildDayHeaders(); buildPlanner(); renderProgressPage(); lucide.createIcons();
+    }
+    function updateModalTranslations() {
+      document.getElementById('modal-title').textContent = t('modal_title'); document.getElementById('label-subject').textContent = t('label_subject');
+      document.getElementById('label-time').textContent = t('label_time'); document.getElementById('label-duration').textContent = t('label_duration');
+      document.getElementById('label-date').textContent = t('label_date'); document.getElementById('label-color').textContent = t('label_color');
+      document.getElementById('modal-cancel').textContent = t('modal_cancel'); document.getElementById('modal-save').textContent = t('modal_save');
+      document.getElementById('session-subject').placeholder = t('subject_placeholder');
+    }
+    function updateNotesTranslations() {
+      document.getElementById('notes-title').textContent = t('notes_title'); document.getElementById('notes-subtitle').textContent = t('notes_subtitle');
+      document.getElementById('notes-textarea').placeholder = t('notes_placeholder'); document.getElementById('notes-clear-btn').textContent = t('notes_clear');
+      document.getElementById('analyze-btn-label').textContent = t('notes_analyze_btn'); document.getElementById('notes-summary-title').textContent = t('notes_summary_title');
+      document.getElementById('notes-points-title').textContent = t('notes_points_title'); document.getElementById('notes-mindmap-title').textContent = t('notes_mindmap_title');
+      document.getElementById('notes-questions-title').textContent = t('notes_questions_title'); updateCharCount();
+    }
+    function buildDayHeaders() { document.getElementById('planner-day-headers').innerHTML = t('days').map(d => `<div class="text-center text-xs text-gray-500 py-1">${d}</div>`).join(''); }
+    function showSection(id) {
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      document.getElementById('sec-' + id).classList.remove('hidden');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector(`[data-nav="${id}"]`).classList.add('active');
+      if (id === 'progress') renderProgressPage();
+      if (id === 'quiz') refreshSubjectSelect();
+      lucide.createIcons();
+    }
+
+    // =====================
+    // Chat
+    // =====================
+    let isSending = false;
+    async function sendChat() {
+      if (isSending) return;
+      const input = document.getElementById('chat-input'); const sendBtn = document.getElementById('send-btn'); const msg = input.value.trim();
+      if (!msg) { input.classList.add('border-red-500/50'); setTimeout(() => input.classList.remove('border-red-500/50'), 1000); return; }
+      isSending = true; sendBtn.disabled = true; input.disabled = true;
+      const container = document.getElementById('chat-messages');
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-bubble flex gap-3 justify-end';
+      userBubble.innerHTML = `<div class="glass rounded-2xl rounded-tr-sm px-4 py-3 max-w-lg bg-violet-500/20"><p class="text-sm">${escapeHtml(msg)}</p></div>`;
+      container.appendChild(userBubble); input.value = ''; container.scrollTop = container.scrollHeight;
+      const loadingBubble = document.createElement('div');
+      loadingBubble.className = 'chat-bubble flex gap-3';
+      loadingBubble.innerHTML = `<div class="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center shrink-0"><i data-lucide="bot" class="w-4 h-4 text-violet-300"></i></div><div class="glass rounded-2xl rounded-tl-sm px-4 py-4 max-w-lg"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+      container.appendChild(loadingBubble); lucide.createIcons(); container.scrollTop = container.scrollHeight;
+      try {
+        const res = await fetch(`${API_URL}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg }), signal: AbortSignal.timeout(30000) });
+        const data = await res.json(); if (!res.ok) throw new Error(data.error || "Server error");
+        loadingBubble.innerHTML = `<div class="w-8 h-8 rounded-full bg-violet-500/30 flex items-center justify-center shrink-0"><i data-lucide="bot" class="w-4 h-4 text-violet-300"></i></div><div class="glass rounded-2xl rounded-tl-sm px-4 py-3 max-w-lg"><p class="text-sm leading-relaxed">${escapeHtml(data.reply)}</p></div>`;
+      } catch(err) { loadingBubble.innerHTML = `<div class="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center shrink-0"><i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i></div><div class="glass rounded-2xl rounded-tl-sm px-4 py-3 max-w-lg border border-red-500/30"><p class="text-sm text-red-300">${err.name === 'TimeoutError' ? 'Request timed out.' : '❌ ' + escapeHtml(err.message)}</p></div>`; }
+      lucide.createIcons(); container.scrollTop = container.scrollHeight; isSending = false; sendBtn.disabled = false; input.disabled = false; input.focus();
+    }
+    function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+
+    // =====================
+    // Smart Notes
+    // =====================
+    function updateCharCount() { document.getElementById('char-count').textContent = t('notes_char_count', document.getElementById('notes-textarea').value.length); }
+    function clearNotesText() { document.getElementById('notes-textarea').value = ''; updateCharCount(); document.getElementById('notes-output').classList.add('hidden'); }
+    async function analyzeNotes() {
+      const btn = document.getElementById('analyze-btn'); const output = document.getElementById('notes-output'); const text = document.getElementById('notes-textarea').value.trim();
+      if (!text) { document.getElementById('notes-textarea').classList.add('border-red-500/50'); setTimeout(() => document.getElementById('notes-textarea').classList.remove('border-red-500/50'), 1000); return; }
+      btn.disabled = true; btn.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="ml-2 text-sm">${t('notes_analyzing')}</span>`;
+      output.classList.add('hidden');
+      try {
+        const res = await fetch(`${API_URL}/analyze-text`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, lang: currentLang, lang_instruction: t('notes_lang_instruction') }), signal: AbortSignal.timeout(30000) });
+        const data = await res.json(); if (!res.ok) throw new Error(data.error || t('notes_fail_err'));
+        renderNotesOutput(data.result); recordTopic();
+        output.classList.remove('hidden'); output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) { output.classList.remove('hidden'); output.innerHTML = `<div class="glass rounded-2xl p-6 border border-red-500/30"><p class="error-msg">❌ ${err.name === 'TimeoutError' ? t('notes_timeout_err') : escapeHtml(err.message)}</p></div>`; }
+      btn.disabled = false; btn.innerHTML = `<i data-lucide="sparkles" class="w-5 h-5"></i><span id="analyze-btn-label">${t('notes_analyze_btn')}</span>`; lucide.createIcons();
+    }
+    function renderNotesOutput(result) {
+      document.getElementById('notes-summary').textContent = result.summary || '—';
+      document.getElementById('notes-points').innerHTML = (result.keyPoints || []).map(p => `<li class="flex gap-2 text-sm text-gray-300"><span class="text-blue-400 shrink-0 mt-0.5">▸</span><span>${escapeHtml(p)}</span></li>`).join('');
+      const mindmapEl = document.getElementById('notes-mindmap');
+      if (result.mindMap && Array.isArray(result.mindMap)) mindmapEl.innerHTML = renderMindMap(result.mindMap, 0);
+      else mindmapEl.innerHTML = `<p class="text-gray-500 text-sm">${t('notes_no_data')}</p>`;
+      document.getElementById('notes-questions').innerHTML = (result.questions || []).map((q, i) => `<div class="bg-white/5 rounded-xl p-4 border border-yellow-500/10"><p class="text-sm font-medium text-yellow-200 mb-2">${t('notes_q_prefix', i)} ${escapeHtml(q.q || '')}</p><details class="cursor-pointer"><summary class="text-xs text-gray-500 hover:text-yellow-300 transition select-none">${t('notes_show_answer')}</summary><p class="text-sm text-gray-300 mt-2 pt-2 border-t border-white/10">${escapeHtml(q.a || '')}</p></details></div>`).join('');
+    }
+    function renderMindMap(nodes, depth) { const colors = ['text-emerald-300','text-blue-300','text-violet-300','text-pink-300']; const color = colors[depth % colors.length]; const indent = depth * 20; return nodes.map(node => { const label = typeof node === 'string' ? node : node.label; const children = typeof node === 'object' ? (node.children || []) : []; return `<div style="padding-left:${indent}px" class="py-0.5"><span class="${color} font-medium">${depth===0?'🧩':depth===1?'◆':'◇'} ${escapeHtml(label)}</span></div>${children.length ? renderMindMap(children, depth+1) : ''}`; }).join(''); }
+
+    // =====================
+    // Quiz (Brain Test) with Subject Selection
+    // =====================
+    function getLocalizedQuizData() { return { easy: { questions: t('quiz_q_easy'), options: t('quiz_opts_easy'), answers: t('quiz_ans_easy') }, medium: { questions: t('quiz_q_medium'), options: t('quiz_opts_medium'), answers: t('quiz_ans_medium') }, hard: { questions: t('quiz_q_hard'), options: t('quiz_opts_hard'), answers: t('quiz_ans_hard') } }; }
+    let currentDiff = 'medium', currentQ = 0, score = 0, answered = 0, currentSubject = '';
+
+    function refreshSubjectSelect() {
+      const sessions = getPlannerSessions();
+      const subjects = [...new Set(sessions.map(s => s.subject))];
+      const select = document.getElementById('quiz-subject-select');
+      select.innerHTML = `<option value="">${t('select_subject')}</option>${subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}`;
+      select.value = currentSubject;
+    }
+
+    function setDifficulty(d) { currentDiff = d; currentQ = 0; score = 0; answered = 0; document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('bg-yellow-500/20','bg-green-500/20','bg-red-500/20')); const colors = { easy:'bg-green-500/20', medium:'bg-yellow-500/20', hard:'bg-red-500/20' }; document.querySelector(`[data-diff="${d}"]`).classList.add(colors[d]); loadQuestion(); }
+    
+    function loadQuestion() {
+      const level = getLocalizedQuizData()[currentDiff]; const idx = currentQ % level.questions.length;
+      document.getElementById('quiz-progress').textContent = `${t('quiz_progress')} ${currentQ+1} of ${level.questions.length}`;
+      document.getElementById('quiz-score').textContent = `${t('quiz_score')} ${score}/${answered}`;
+      document.getElementById('quiz-question').textContent = level.questions[idx];
+      document.getElementById('quiz-next').classList.add('hidden');
+      document.getElementById('quiz-options').innerHTML = level.options[idx].map((o,i) => `<div class="quiz-option glass rounded-xl px-5 py-4 neon-border" onclick="checkAnswer(${i}, ${level.answers[idx]})">${escapeHtml(o)}</div>`).join('');
+    }
+    
+    function checkAnswer(sel, correct) {
+      const subjectSelect = document.getElementById('quiz-subject-select');
+      if (!subjectSelect.value) { alert(t('select_subject_warning')); return; }
+      currentSubject = subjectSelect.value;
+      document.querySelectorAll('.quiz-option').forEach((o,i) => { o.onclick = null; if(i===correct) o.classList.add('correct'); else if(i===sel) o.classList.add('wrong'); });
+      const isCorrect = (sel === correct); if(isCorrect) score++; answered++;
+      recordQuizAnswer(isCorrect, currentSubject);
+      document.getElementById('quiz-score').textContent = `${t('quiz_score')} ${score}/${answered}`;
+      document.getElementById('quiz-next').classList.remove('hidden');
+    }
+    function nextQuestion() { currentQ++; loadQuestion(); }
+
+    // =====================
+    // Stats System (Dynamic Subjects)
+    // =====================
+    function getStats() {
+      const defaults = { studySeconds:0, quizTotal:0, quizCorrect:0, topics:0, lastStudyDate:null, streak:0, bestStreak:0, subjectScores: {}, dailyStudySeconds: {}, achievementsUnlocked: { topScore:false, sevenDay:false, bookworm:false, perfectionist:false } };
+      try { return { ...defaults, ...JSON.parse(localStorage.getItem('eduvision_stats')||'{}') }; } catch { return defaults; }
+    }
+    function saveStats(stats) { localStorage.setItem('eduvision_stats', JSON.stringify(stats)); }
+    function addStudySeconds(secs) {
+      if (secs <= 0) return; const stats = getStats(); stats.studySeconds += secs;
+      const today = new Date().toISOString().slice(0,10);
+      stats.dailyStudySeconds[today] = (stats.dailyStudySeconds[today] || 0) + secs;
+      updateStreakIfNeeded(stats); saveStats(stats); renderDashboard(); renderProgressPage();
+    }
+    function recordQuizAnswer(correct, subject) {
+      if (!subject) return;
+      const stats = getStats(); stats.quizTotal++; if(correct) stats.quizCorrect++;
+      if(!stats.subjectScores[subject]) stats.subjectScores[subject] = { correct:0, total:0 };
+      stats.subjectScores[subject].total++;
+      if(correct) stats.subjectScores[subject].correct++;
+      updateStreakIfNeeded(stats); saveStats(stats); renderDashboard(); renderProgressPage();
+    }
+    function recordTopic() { const stats = getStats(); stats.topics++; updateStreakIfNeeded(stats); saveStats(stats); renderDashboard(); renderProgressPage(); }
+    function updateStreakIfNeeded(stats) {
+      const today = new Date().toISOString().slice(0,10);
+      if (stats.lastStudyDate === today) return;
+      const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+      if (stats.lastStudyDate === yesterday) stats.streak++; else stats.streak = 1;
+      if(stats.streak > (stats.bestStreak || 0)) stats.bestStreak = stats.streak;
+      stats.lastStudyDate = today;
+    }
+    function formatStudyTime(s) { if(s<60) return s+'s'; const m = Math.floor(s/60); if(m<60) return m+'m'; return (s/3600).toFixed(1)+'h'; }
+    function renderDashboard() {
+      const stats = getStats();
+      document.getElementById('stat-study-time').textContent = formatStudyTime(stats.studySeconds);
+      if (stats.quizTotal === 0) { document.getElementById('stat-quiz-score').textContent = '—'; document.getElementById('stat-quiz-sub').textContent = 'no quizzes yet'; }
+      else { const pct = Math.round((stats.quizCorrect/stats.quizTotal)*100); document.getElementById('stat-quiz-score').textContent = pct+'%'; document.getElementById('stat-quiz-sub').textContent = `${stats.quizCorrect}/${stats.quizTotal} correct`; document.getElementById('stat-quiz-score').className = 'text-2xl font-bold '+(pct>=70?'text-green-400':pct>=50?'text-yellow-400':'text-red-400'); }
+      document.getElementById('stat-streak').textContent = stats.streak+' day'+(stats.streak!==1?'s':''); document.getElementById('stat-topics').textContent = stats.topics;
+    }
+
+    // =====================
+    // Progress Page Rendering (REAL with Dynamic Subjects)
+    // =====================
+    function renderProgressPage() {
+      const stats = getStats();
+      // 1. Weekly Chart
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; const weeklyData = []; const today = new Date();
+      for(let i=6; i>=0; i--) { const d = new Date(today); d.setDate(today.getDate() - i); const dateStr = d.toISOString().slice(0,10); let seconds = stats.dailyStudySeconds[dateStr] || 0; weeklyData.push({ day: days[d.getDay()], hours: seconds / 3600 }); }
+      const maxHours = Math.max(...weeklyData.map(d => d.hours), 1);
+      const chartContainer = document.getElementById('weekly-chart');
+      chartContainer.innerHTML = weeklyData.map(d => `<div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 transition-all duration-500" style="height: ${(d.hours/maxHours)*100}%; min-height: 8px;"></div><span class="text-xs text-gray-400">${d.day.slice(0,3)}</span><span class="text-[10px] text-gray-500">${d.hours.toFixed(1)}h</span></div>`).join('');
+      
+      // 2. Subject Performance (from Planner Subjects)
+      const sessions = getPlannerSessions();
+      const subjectsMap = new Map();
+      sessions.forEach(s => { if(!subjectsMap.has(s.subject)) subjectsMap.set(s.subject, { correct:0, total:0 }); });
+      for(let [subject, data] of subjectsMap.entries()) {
+        const scores = stats.subjectScores[subject] || { correct:0, total:0 };
+        data.correct = scores.correct; data.total = scores.total;
+      }
+      const perfContainer = document.getElementById('subject-performance');
+      if(subjectsMap.size === 0) { perfContainer.innerHTML = `<div class="text-center text-gray-500 py-4">No subjects added yet. Add sessions in Study Planner.</div>`; }
+      else {
+        perfContainer.innerHTML = Array.from(subjectsMap.entries()).map(([subject, data]) => {
+          const pct = data.total === 0 ? 0 : Math.round((data.correct/data.total)*100);
+          return `<div><div class="flex justify-between text-sm mb-1"><span>${escapeHtml(subject)}</span><span class="text-violet-300">${pct}% (${data.correct}/${data.total})</span></div><div class="h-2 rounded-full bg-white/5"><div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-blue-500 transition-all duration-500" style="width:${pct}%"></div></div></div>`;
+        }).join('');
+      }
+      
+      // 3. Achievements
+      const achievements = [
+        { id: 'topScore', icon: '🏆', title: t('achievement_top_score'), condition: () => { const s = getStats(); return s.quizTotal > 0 && (s.quizCorrect/s.quizTotal) >= 0.8; } },
+        { id: 'sevenDay', icon: '🔥', title: t('achievement_7day'), condition: () => getStats().bestStreak >= 7 },
+        { id: 'bookworm', icon: '📚', title: t('achievement_bookworm'), condition: () => getStats().topics >= 5 },
+        { id: 'perfectionist', icon: '🎯', title: t('achievement_perfect'), condition: () => getStats().quizCorrect >= 20 }
+      ];
+      const achievementsContainer = document.getElementById('achievements-grid');
+      achievementsContainer.innerHTML = achievements.map(ach => { const unlocked = ach.condition(); return `<div class="text-center p-3 rounded-xl transition-all duration-300 ${unlocked ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-white/5 border border-white/10 opacity-50 grayscale'}"><span class="text-2xl">${ach.icon}</span><p class="text-xs mt-1 ${unlocked ? 'text-gray-300' : 'text-gray-500'}">${ach.title}</p></div>`; }).join('');
+      
+      // 4. Streak
+      document.getElementById('current-streak-num').textContent = stats.streak;
+      document.getElementById('best-streak-text').textContent = `Personal best: ${stats.bestStreak || 0} days`;
+      const weekDays = ['M','T','W','T','F','S','S']; const last7Days = [];
+      for(let i=6; i>=0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const dateStr = d.toISOString().slice(0,10); last7Days.push({ day: weekDays[d.getDay()===0?6:d.getDay()-1], active: stats.dailyStudySeconds[dateStr] > 0 || stats.lastStudyDate === dateStr }); }
+      document.getElementById('week-strip').innerHTML = last7Days.map(d => `<div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium ${d.active ? 'bg-violet-500/80 text-white' : 'bg-white/10 text-gray-500'}">${d.day}</div>`).join('');
+    }
+
+    // =====================
+    // Study Planner
+    // =====================
+    const SESSION_COLORS = { violet:{ bg:'bg-violet-500/10', border:'border-violet-500/30', dot:'bg-violet-500' }, blue:{ bg:'bg-blue-500/10', border:'border-blue-500/30', dot:'bg-blue-500' }, pink:{ bg:'bg-pink-500/10', border:'border-pink-500/30', dot:'bg-pink-500' }, emerald:{ bg:'bg-emerald-500/10', border:'border-emerald-500/30', dot:'bg-emerald-500' }, yellow:{ bg:'bg-yellow-500/10', border:'border-yellow-500/30', dot:'bg-yellow-500' } };
+    let plannerYear, plannerMonth, plannerSelectedDate, selectedColor = 'violet';
+    function getPlannerSessions() { try { return JSON.parse(localStorage.getItem('eduvision_sessions')||'[]'); } catch { return []; } }
+    function savePlannerSessions(sessions) { localStorage.setItem('eduvision_sessions', JSON.stringify(sessions)); refreshSubjectSelect(); renderProgressPage(); }
+    function todayStr() { return new Date().toISOString().slice(0,10); }
+    function buildPlanner() {
+      const now = new Date(); if (plannerYear === undefined) { plannerYear = now.getFullYear(); plannerMonth = now.getMonth(); }
+      plannerSelectedDate = plannerSelectedDate || todayStr(); const sessions = getPlannerSessions(); const sessionDates = new Set(sessions.map(s => s.date));
+      const firstDay = new Date(plannerYear, plannerMonth, 1); let startOffset = firstDay.getDay() - 1; if (startOffset < 0) startOffset = 6;
+      const daysInMonth = new Date(plannerYear, plannerMonth+1, 0).getDate();
+      const monthNames = { en: ['January','February','March','April','May','June','July','August','September','October','November','December'], ar: ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'] };
+      document.getElementById('planner-month-label').textContent = `${monthNames[currentLang][plannerMonth]} ${plannerYear}`;
+      const grid = document.getElementById('planner-grid'); let html = ''; for (let i = 0; i < startOffset; i++) html += `<div></div>`;
+      const todayFull = todayStr();
+      for (let d = 1; d <= daysInMonth; d++) { const dateStr = `${plannerYear}-${String(plannerMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; const isToday = dateStr === todayFull; const isSelected = dateStr === plannerSelectedDate; const hasSessions = sessionDates.has(dateStr); html += `<div onclick="selectDay('${dateStr}')" class="aspect-square rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all text-xs ${isSelected?'bg-violet-500 text-white font-bold':isToday?'neon-border text-violet-300 font-semibold':'glass hover:bg-violet-500/10 text-gray-400'}"><span>${d}</span>${hasSessions?`<div class="w-1 h-1 rounded-full mt-0.5 ${isSelected?'bg-white':'bg-violet-400'}"></div>`:''}</div>`; }
+      grid.innerHTML = html; renderDaySessions(plannerSelectedDate);
+    }
+    function changeMonth(dir) { plannerMonth += dir; if (plannerMonth > 11) { plannerMonth = 0; plannerYear++; } if (plannerMonth < 0) { plannerMonth = 11; plannerYear--; } buildPlanner(); lucide.createIcons(); }
+    function selectDay(dateStr) { plannerSelectedDate = dateStr; buildPlanner(); }
+    function renderDaySessions(dateStr) {
+      const sessions = getPlannerSessions().filter(s => s.date === dateStr); const container = document.getElementById('planner-sessions'); const title = document.getElementById('planner-day-title'); const count = document.getElementById('planner-session-count');
+      const d = new Date(dateStr + 'T00:00:00'); const isToday = dateStr === todayStr();
+      if (isToday) title.textContent = t('day_title_today'); else { const locale = currentLang === 'ar' ? 'ar-EG' : 'en-GB'; title.textContent = d.toLocaleDateString(locale, { weekday:'long', day:'numeric', month:'long' }); }
+      count.textContent = sessions.length ? t('session_count', sessions.length) : '';
+      if (!sessions.length) { container.innerHTML = `<div class="text-center py-8 text-gray-500 text-sm"><p class="text-2xl mb-2">📭</p><p>${t('no_sessions')}</p><p class="text-xs mt-1">${t('no_sessions_hint')}</p></div>`; return; }
+      sessions.sort((a,b) => a.time.localeCompare(b.time)); container.innerHTML = sessions.map(s => { const c = SESSION_COLORS[s.color] || SESSION_COLORS.violet; const endTime = calcEndTime(s.time, s.duration); const durationLabel = currentLang === 'ar' ? (s.duration >= 60 ? `${Math.floor(s.duration/60)}س${s.duration%60?' '+s.duration%60+'د':''}` : `${s.duration}د`) : (s.duration >= 60 ? `${Math.floor(s.duration/60)}h${s.duration%60?' '+s.duration%60+'m':''}` : `${s.duration}m`); return `<div class="flex items-center gap-3 p-3 rounded-xl ${c.bg} border ${c.border} group"><div class="w-1.5 h-10 rounded-full ${c.dot} shrink-0"></div><div class="flex-1 min-w-0"><p class="font-medium text-sm truncate">${escapeHtml(s.subject)}</p><p class="text-xs text-gray-400">${s.time} - ${endTime} · ${durationLabel}</p></div><button onclick="deleteSession('${s.id}')" class="opacity-0 group-hover:opacity-100 transition text-gray-500 hover:text-red-400 p-1 shrink-0"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`; }).join(''); lucide.createIcons();
+    }
+    function calcEndTime(timeStr, durationMins) { const [h, m] = timeStr.split(':').map(Number); const total = h*60 + m + Number(durationMins); return `${String(Math.floor(total/60)%24).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`; }
+    function openAddSession() { document.getElementById('session-date').value = plannerSelectedDate || todayStr(); document.getElementById('session-subject').value = ''; document.getElementById('session-time').value = '09:00'; document.getElementById('session-duration').value = '60'; document.getElementById('session-error').classList.add('hidden'); selectColor('violet', { currentTarget: document.querySelector('.color-opt') }); document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('ring-2','ring-white','ring-offset-1')); document.querySelector('.color-opt[onclick*="violet"]').classList.add('ring-2','ring-white','ring-offset-1'); selectedColor = 'violet'; updateModalTranslations(); document.getElementById('add-session-modal').classList.remove('hidden'); setTimeout(() => document.getElementById('session-subject').focus(), 100); }
+    function closeAddSession() { document.getElementById('add-session-modal').classList.add('hidden'); }
+    function selectColor(color, e) { selectedColor = color; document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('ring-2','ring-white','ring-offset-1')); if (e && e.currentTarget) e.currentTarget.classList.add('ring-2','ring-white','ring-offset-1'); }
+    function saveSession() { const subject = document.getElementById('session-subject').value.trim(); const time = document.getElementById('session-time').value; const duration = parseInt(document.getElementById('session-duration').value); const date = document.getElementById('session-date').value; const errEl = document.getElementById('session-error'); if (!subject) { errEl.textContent = t('err_subject'); errEl.classList.remove('hidden'); return; } if (!date) { errEl.textContent = t('err_date'); errEl.classList.remove('hidden'); return; } if (!duration||duration<15){ errEl.textContent = t('err_duration'); errEl.classList.remove('hidden'); return; } const sessions = getPlannerSessions(); sessions.push({ id: Date.now().toString(), subject, time, duration, date, color: selectedColor }); savePlannerSessions(sessions); plannerSelectedDate = date; const d = new Date(date + 'T00:00:00'); plannerYear = d.getFullYear(); plannerMonth = d.getMonth(); closeAddSession(); buildPlanner(); lucide.createIcons(); }
+    function deleteSession(id) { savePlannerSessions(getPlannerSessions().filter(s => s.id !== id)); buildPlanner(); lucide.createIcons(); }
+
+    // =====================
+    // Timer
+    // =====================
+    let timerInterval = null, timerSeconds = 25*60, timerTotal = 25*60, timerRunning = false;
+    let currentTimerMode = 'focus', timerStartedAt = null;
+    function updateTimerDisplay() { const m = Math.floor(timerSeconds/60).toString().padStart(2,'0'); const s = (timerSeconds%60).toString().padStart(2,'0'); document.getElementById('timer-display').textContent = `${m}:${s}`; const offset = 283 - (283*(timerTotal-timerSeconds)/timerTotal); document.getElementById('timer-ring').setAttribute('stroke-dashoffset', offset); }
+    function startTimer() { if (timerRunning) return; timerRunning = true; timerStartedAt = Date.now(); document.getElementById('timer-start').classList.add('hidden'); document.getElementById('timer-pause').classList.remove('hidden'); timerInterval = setInterval(() => { if (timerSeconds > 0) { timerSeconds--; updateTimerDisplay(); } else { if (currentTimerMode === 'focus') addStudySeconds(timerTotal); pauseTimer(); document.getElementById('timer-label').textContent = '✅ Done!'; timerStartedAt = null; } }, 1000); }
+    function pauseTimer() { if (timerRunning && timerStartedAt && currentTimerMode === 'focus') { const elapsed = Math.floor((Date.now()-timerStartedAt)/1000); if (elapsed > 5) addStudySeconds(elapsed); } timerRunning = false; timerStartedAt = null; clearInterval(timerInterval); document.getElementById('timer-start').classList.remove('hidden'); document.getElementById('timer-pause').classList.add('hidden'); }
+    function resetTimer() { pauseTimer(); setTimerMode(currentTimerMode); }
+    function setTimerMode(mode) { pauseTimer(); currentTimerMode = mode; let seconds = 25*60; let labelKey = 'focus'; if (mode === 'focus') { seconds = 25*60; labelKey = 'focus'; } else if (mode === 'short') { seconds = 5*60; labelKey = 'short_break'; } else if (mode === 'long') { seconds = 15*60; labelKey = 'long_break'; } else if (mode === 'hour') { seconds = 60*60; labelKey = 'hour_mode'; } timerSeconds = seconds; timerTotal = seconds; document.getElementById('timer-label').textContent = t(labelKey); updateTimerDisplay(); document.querySelectorAll('.timer-mode').forEach(b => { b.classList.remove('bg-violet-500/20','border','border-violet-500/30'); b.classList.add('glass'); }); const btn = document.querySelector(`[data-mode="${mode}"]`); btn.classList.remove('glass'); btn.classList.add('bg-violet-500/20','border','border-violet-500/30'); }
+
+    // =====================
+    // Init
+    // =====================
+    buildDayHeaders(); buildPlanner(); setDifficulty('medium'); setTimerMode('focus'); updateTimerDisplay(); renderDashboard(); renderProgressPage();
+    updateNotesTranslations(); refreshSubjectSelect(); lucide.createIcons(); checkServerStatus(); setInterval(checkServerStatus, 30000);
+  </script>
+</body>
+</html>
